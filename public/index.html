@@ -26,6 +26,21 @@
         const socket = io();
         socket.on('gameStarted', () => { document.getElementById('ui').innerHTML = '<div class="board" id="board"></div>'; renderBoard(); });
         function renderBoard() { /* Logic for 15x15 glass grid */ }
+
+        // Inside index.html <script>
+socket.on('playerAssigned', (data) => {
+    myColor = data.color;
+    myRoomCode = data.roomCode;
+    
+    // Hide Main Menu, Show Lobby
+    document.getElementById('mainMenu').style.display = 'none';
+    document.getElementById('lobbyMenu').style.display = 'block';
+    
+    // This is the line that renders the code
+    document.getElementById('lobbyRoomCode').innerText = data.roomCode;
+    
+    console.log("Room successfully created with code:", data.roomCode);
+});
     </script>
 </body>
 </html>
