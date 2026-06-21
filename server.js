@@ -172,9 +172,13 @@ io.on('connection', (socket) => {
 function nextTurn(game) {
     game.hasRolled = false;
     game.diceRoll = null;
-    let nextIdx = (COLORS.indexOf(game.currentTurn) + 1) % 4;
+    
+    let nextIdx = COLORS.indexOf(game.currentTurn);
+    
+    // Keep skipping to the next color until we find one that is actually taken by a player
+    do {
+        nextIdx = (nextIdx + 1) % 4;
+    } while (!game.colorsTaken.includes(COLORS[nextIdx]) && game.colorsTaken.length > 0);
+    
     game.currentTurn = COLORS[nextIdx];
 }
-
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Production Ludo running on port ${PORT}`));
