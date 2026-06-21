@@ -52,7 +52,8 @@ io.on('connection', (socket) => {
         let assignedColor = player ? player.color : null;
 
         if (!assignedColor) {
-            assignedColor = COLORS.find(c => !game.colorsTaken.includes(c));
+            // Prioritize opposite corners for better 1v1 action
+            assignedColor = ['Red', 'Yellow', 'Green', 'Blue'].find(c => !game.colorsTaken.includes(c));
             if (!assignedColor) {
                 socket.emit('errorMsg', 'Room is Full!');
                 return;
@@ -66,17 +67,9 @@ io.on('connection', (socket) => {
         io.to(roomCode).emit('gameStateUpdate', game);
     });
 
-    socket.on('voiceOffer', ({ targetId, sdp }) => {
-        io.to(targetId).emit('voiceOffer', { senderId: socket.id, sdp });
-    });
-
-    socket.on('voiceAnswer', ({ targetId, sdp }) => {
-        io.to(targetId).emit('voiceAnswer', { senderId: socket.id, sdp });
-    });
-
-    socket.on('iceCandidate', ({ targetId, candidate }) => {
-        io.to(targetId).emit('iceCandidate', { senderId: socket.id, candidate });
-    });
+    socket.on('voiceOffer', ({ targetId, sdp }) => io.to(targetId).emit('voiceOffer', { senderId: socket.id, sdp }));
+    socket.on('voiceAnswer', ({ targetId, sdp }) => io.to(targetId).emit('voiceAnswer', { senderId: socket.id, sdp }));
+    socket.on('iceCandidate', ({ targetId, candidate }) => io.to(targetId).emit('iceCandidate', { senderId: socket.id, candidate }));
 
     socket.on('rollDice', (roomCode) => {
         const game = rooms[roomCode];
@@ -146,7 +139,13 @@ io.on('connection', (socket) => {
         io.to(roomCode).emit('tokenMoved', { game, movingColor: player.color, tokenIndex, oldPos: currentPos, newPos: targetPos, isKnockout });
 
         setTimeout(() => {
-            nextTurn(game);
+            // Give an extra roll if you knock someone out or roll a 6
+            if (roll === 6 || isKnockout) {
+                game.hasRolled = false; 
+                game.diceRoll = null;
+            } else {
+                nextTurn(game);
+            }
             io.to(roomCode).emit('gameStateUpdate', game);
         }, 1000);
     });
@@ -155,11 +154,22 @@ io.on('connection', (socket) => {
         for (const roomCode in rooms) {
             const game = rooms[roomCode];
             if (game.players[socket.id]) {
-                const color = game.players[socket.id].color;
-                game.colorsTaken = game.colorsTaken.filter(c => c !== color);
+                const disconnectedColor = game.players[socket.id].color;
+                
+                // Remove player from the room
+                game.colorsTaken = game.colorsTaken.filter(c => c !== disconnectedColor);
                 delete game.players[socket.id];
+                
                 io.to(roomCode).emit('voiceUserLeft', socket.id);
+
+                // Failsafe: If the person who just left was taking their turn, pass it!
+                if (game.currentTurn === disconnectedColor && Object.keys(game.players).length > 0) {
+                    nextTurn(game);
+                }
+
                 io.to(roomCode).emit('gameStateUpdate', game);
+                
+                // Cleanup empty rooms
                 if (Object.keys(game.players).length === 0) {
                     delete rooms[roomCode];
                 }
@@ -173,12 +183,23 @@ function nextTurn(game) {
     game.hasRolled = false;
     game.diceRoll = null;
     
-    let nextIdx = COLORS.indexOf(game.currentTurn);
+    // Scan directly for connected sockets, ignoring any ghost data
+    const activeColors = Object.values(game.players).map(p => p.color);
     
-    // Keep skipping to the next color until we find one that is actually taken by a player
+    // If room is empty, do nothing
+    if (activeColors.length === 0) return;
+
+    let nextIdx = COLORS.indexOf(game.currentTurn);
+    let loops = 0;
+    
+    // Cycle through turns until we find a color that actively belongs to a connected socket
     do {
         nextIdx = (nextIdx + 1) % 4;
-    } while (!game.colorsTaken.includes(COLORS[nextIdx]) && game.colorsTaken.length > 0);
+        loops++;
+    } while (!activeColors.includes(COLORS[nextIdx]) && loops < 4);
     
     game.currentTurn = COLORS[nextIdx];
 }
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log(`Production Ludo running on port ${PORT}`));
