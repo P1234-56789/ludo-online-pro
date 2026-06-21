@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ludo Glass</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body { margin: 0; background: #0f172a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .glass { background: rgba(255,255,255,0.1); backdrop-filter: blur(20px); padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); width: 300px; text-align: center; }
+        input { width: 80%; padding: 10px; margin: 10px 0; border-radius: 8px; border: none; text-align: center; background: rgba(0,0,0,0.2); color: white; }
+        button { width: 100%; padding: 12px; background: #10b981; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; }
+        #lobby { display: none; }
+        #codeDisplay { font-size: 40px; font-weight: bold; color: #10b981; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div id="main" class="glass">
+        <h2>Ludo Glass</h2>
+        <button onclick="socket.emit('createRoom')">Host Game</button>
+        <p>OR</p>
+        <input id="in" placeholder="ENTER CODE" maxlength="5">
+        <button onclick="socket.emit('joinRoom', document.getElementById('in').value)">Join Game</button>
+    </div>
+    <div id="lobby" class="glass">
+        <h2>Lobby</h2>
+        <div id="codeDisplay">...</div>
+        <div id="players"></div>
+    </div>
+    <script>
+        const socket = io();
+        socket.on('playerAssigned', (d) => {
+            document.getElementById('main').style.display = 'none';
+            document.getElementById('lobby').style.display = 'block';
+            document.getElementById('codeDisplay').innerText = d.roomCode;
+        });
+        socket.on('errorMsg', (m) => alert(m));
+    </script>
+</body>
+</html>
