@@ -91,3 +91,17 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+// Inside server.js
+socket.on('createRoom', () => {
+    let roomCode = generateShortCode();
+    rooms[roomCode] = createNewGame(socket.id);
+    
+    // Explicitly send the room code to the host
+    socket.join(roomCode);
+    socket.emit('playerAssigned', { 
+        color: 'Red', 
+        roomCode: roomCode, 
+        isHost: true 
+    });
+});
