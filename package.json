@@ -1,8 +1,0 @@
-{
-  "name": "ludo-pro-ultimate",
-  "version": "3.0.0",
-  "description": "Premium Ludo with Liquid Glass UI, Particle effects, and Voice Chat.",
-  "main": "server.js",
-  "scripts": { "start": "node server.js" },
-  "dependencies": { "express": "^4.19.2", "socket.io": "^4.7.5" }
-}
