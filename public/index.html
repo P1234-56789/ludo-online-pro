@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ludo Liquid Glass</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        :root { --glass: rgba(255, 255, 255, 0.1); --border: rgba(255, 255, 255, 0.2); }
+        body { margin: 0; background: radial-gradient(circle at center, #1e293b, #0f172a); color: white; font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .glass-panel { background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--border); padding: 30px; border-radius: 25px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); text-align: center; width: 320px; }
+        button { background: linear-gradient(135deg, #10b981, #059669); border: none; padding: 15px; border-radius: 12px; color: white; font-weight: bold; cursor: pointer; width: 100%; transition: transform 0.2s; }
+        button:active { transform: scale(0.95); }
+        .board { display: grid; grid-template-columns: repeat(15, 30px); grid-template-rows: repeat(15, 30px); gap: 1px; }
+        .cell { background: rgba(255,255,255,0.05); border-radius: 4px; }
+        .token { width: 24px; height: 24px; border-radius: 50%; box-shadow: 0 0 10px rgba(0,0,0,0.5); cursor: pointer; transition: 0.3s; }
+    </style>
+</head>
+<body>
+    <div class="glass-panel" id="ui">
+        <h1>Ludo Glass</h1>
+        <button onclick="socket.emit('createRoom')">Host Game</button>
+        <input id="code" placeholder="ENTER CODE" style="background:transparent; border:1px solid white; color:white; padding:10px; margin:10px 0; width:90%; border-radius:10px;">
+        <button onclick="socket.emit('joinRoom', document.getElementById('code').value)">Join Game</button>
+    </div>
+    <script>
+        const socket = io();
+        socket.on('gameStarted', () => { document.getElementById('ui').innerHTML = '<div class="board" id="board"></div>'; renderBoard(); });
+        function renderBoard() { /* Logic for 15x15 glass grid */ }
+    </script>
+</body>
+</html>
