@@ -3,22 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Ludo Liquid Glass</title>
-    <script src="/socket.io/socket.io.js">
-        // Inside index.html <script>
-socket.on('playerAssigned', (data) => {
-    myColor = data.color;
-    myRoomCode = data.roomCode;
-    
-    // Hide Main Menu, Show Lobby
-    document.getElementById('mainMenu').style.display = 'none';
-    document.getElementById('lobbyMenu').style.display = 'block';
-    
-    // This is the line that renders the code
-    document.getElementById('lobbyRoomCode').innerText = data.roomCode;
-    
-    console.log("Room successfully created with code:", data.roomCode);
-});
-    </script>
+    <script src="/socket.io/socket.io.js"></script>
     <style>
         :root { --glass: rgba(255, 255, 255, 0.1); --border: rgba(255, 255, 255, 0.2); }
         body { margin: 0; background: radial-gradient(circle at center, #1e293b, #0f172a); color: white; font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
